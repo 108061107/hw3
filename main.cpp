@@ -1,7 +1,8 @@
 #include <iostream>
 using namespace std;
-//using namespace std::chrono;
+#include <cmath>
 #include "mbed.h"
+using namespace std::chrono;
 #include "mbed_rpc.h"
 #include "uLCD_4DGL.h"
 
@@ -35,17 +36,19 @@ uLCD_4DGL uLCD(D1, D0, D2);
 int angle = 60;
 int an[4] = {20, 40, 60, 80};
 int state = 2;
+int uLCD_print = 0;
+double detect_angle;
 
 EventQueue gesture_queue(32 * EVENTS_EVENT_SIZE);
 EventQueue detection_queue(32 * EVENTS_EVENT_SIZE);
 
-Thread gesture_thread(osPriorityLow);
-Thread detection_thread(osPriorityLow);
+Thread gesture_thread;
+Thread detection_thread;
 
 void gesture_mode();
 void detection_mode();
 void publish_message(MQTT::Client<MQTTNetwork, Countdown>* client);
-void uLCD_print(int a);
+
 
 // Create an area of memory to use for input, output, and intermediate arrays.
 // The size of this will depend on the model you're using, and may need to be
@@ -127,11 +130,7 @@ int PredictGesture(float* output) {
 }
 
 int main() {
-    /*uLCD.cls();
-    uLCD.text_width(2); //3X size text
-    uLCD.text_height(2);
-    uLCD.locate(0,0);
-    uLCD.printf("%d degree", angle);*/
+    BSP_ACCELERO_Init();
     gesture_queue.call(gesture_mode);
     detection_queue.call(detection_mode);
     gesture_thread.start(callback(&gesture_queue, &EventQueue::dispatch_forever));
@@ -176,6 +175,18 @@ int main() {
 
         printf("%s\r\n", outbuf);
 
+        /*if (uLCD_print == 1) {
+            uLCD.background_color(BLACK);
+            uLCD.cls();
+            uLCD.color(GREEN);
+            uLCD.text_width(2); //2X size text
+            uLCD.text_height(2);
+            uLCD.locate(0,0);
+            uLCD.printf("%d", angle);
+            cout << "100\n";
+        }
+        uLCD_print = 0;*/
+
         
     }
 
@@ -194,9 +205,14 @@ void turnoffled1() {
 
 void gesture_mode()
 {
+uLCD.cls();
+uLCD.text_width(2); //2X size text
+uLCD.text_height(2);
+uLCD.locate(0,0);
+uLCD.printf("threshold\ndegree:%d", angle);
 while (1) {
  if (checkled1 == 1) {
-  checkled3 = 1;
+  
   // detect gesture
   // Whether we should clear the buffer next time we fetch data
   bool should_clear_buffer = false;
@@ -351,8 +367,17 @@ while (1) {
         else {
             state = 0;
         }
-        uLCD_print(an[state]);
+        uLCD_print = 1;
         cout << state << "\n";
+        angle = an[state];
+        cout << angle << " degree\n";
+        uLCD.background_color(BLACK);
+        uLCD.cls();
+        uLCD.color(GREEN);
+        uLCD.text_width(2); //2X size text
+        uLCD.text_height(2);
+        uLCD.locate(0,0);
+        uLCD.printf("threshold\ndegree:%d", angle);
     }
     else if (gesture_index == 0) {
         if (state < 3) {
@@ -361,122 +386,81 @@ while (1) {
         else {
             state = 3;
         }
-        uLCD_print(an[state]);
+        uLCD_print = 1;
         cout << state << "\n";
+        angle = an[state];
+        cout << angle << " degree\n";
+        uLCD.background_color(BLACK);
+        uLCD.cls();
+        uLCD.color(GREEN);
+        uLCD.text_width(2); //2X size text
+        uLCD.text_height(2);
+        uLCD.locate(0,0);
+        uLCD.printf("threshold\ndegree:%d", angle);
     }
-/*
-    if (state == 0) {
-        if (gesture_index == 1) {
-            angle = an[++state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        }
-    }
-    else if (state == 1) {
-        if (gesture_index == 1) {
-            angle = an[++state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        }
-        else if (gesture_index == 0) {
-            angle = an[--state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        }
-    }
-    else if(state == 2) {
-        if (gesture_index == 1) {
-            angle = an[++state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        }
-        else if (gesture_index == 0) {
-            angle = an[--state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        }
-    }
-    else {
-        if (gesture_index == 0) {
-            angle = an[--state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        }
-    }
-*/
+    
+
     // Produce an output
     if (gesture_index < label_num) {
       error_reporter->Report(config.output_message[gesture_index]);
     }
 
     
-/*
-    switch (state) {
-        case 0: if (gesture_index == 1) {
-            angle = an[++state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        } break;
-        case 1: if (gesture_index == 1) {
-            angle = an[++state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        } else if (gesture_index == 0) {
-            angle = an[--state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        } break;
-        case 2: if (gesture_index == 1) {
-            angle = an[++state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        } else if (gesture_index == 0) {
-            angle = an[--state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        } break;
-        case 3: if (gesture_index == 0) {
-            angle = an[--state];
-            uLCD.cls();
-            uLCD.locate(0,0);
-            uLCD.printf("%d degree", angle);
-        } break;
-    } // end of switch*/
+
     // user bottom
-    //button.rise(&turnoffled1);
+    button.rise(&turnoffled1);
   }
     
   }
-  else checkled3 = 0;
  }
 }
 
-void uLCD_print(int a)
-{
-    uLCD.background_color(BLACK);
-    uLCD.cls();
-    uLCD.color(GREEN);
-    uLCD.locate(0,0);
-    uLCD.printf("%d degree", a);
-}
 
 void detection_mode()
 {
+    int overtilt = 0;
+    int reset = 1;
+    int16_t pDataXYZ[3] = {0};
+    double offset;
+    int wait_for_offset = 0;
+    checkled3 = 1;
     while (1) {
         if (checkled2) {
+            while (reset == 1 && wait_for_offset < 50) {
+                checkled3 = !checkled3;
+                ThisThread::sleep_for(100ms);
+                wait_for_offset++;
+                BSP_ACCELERO_AccGetXYZ(pDataXYZ);
+                offset = sqrt((double)pDataXYZ[0]*(double)pDataXYZ[0]+(double)pDataXYZ[1]*(double)pDataXYZ[1]+(double)pDataXYZ[2]*(double)pDataXYZ[2]);
+                cout << offset << "\n";
+            }
+            reset = 0;
+            wait_for_offset = 0;
             
-            // if (n > 5) led2 = 0;
+            BSP_ACCELERO_AccGetXYZ(pDataXYZ);
+            detect_angle = 57.3*acos((double)pDataXYZ[2]/offset);
+            uLCD.background_color(BLACK);
+            uLCD.cls();
+            uLCD.color(GREEN);
+            uLCD.text_width(2); //2X size text
+            uLCD.text_height(2);
+            uLCD.locate(0,0);
+            uLCD.printf("%d", (int)detect_angle);
+            cout << detect_angle << "\n";
+            if (detect_angle > angle) {
+                overtilt++;
+                uLCD.locate(0,1);
+                uLCD.color(RED);
+                uLCD.printf("overtilt %d times", overtilt);
+            }
+            ThisThread::sleep_for(300ms);
+            if (overtilt >= 5) {
+                checkled2 = 0;
+                overtilt = 0;
+                uLCD.cls();
+                reset = 1;
+            }
+            
         }
     }
 }
