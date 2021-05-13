@@ -9,12 +9,13 @@
 當超過角度的次數超過5次，python端傳送RPC指令將LED2關閉，結束tilt angle detection mode並回到RPC loop等待下一個RPC指令。
 
 # 執行結果:
-執行mqtt:
+執行mqtt/wifi:
 ![image](https://user-images.githubusercontent.com/79581724/117925010-3b9b5a00-b329-11eb-8f8f-102984a2bff7.png)
 \
 \
-進入gesture UI mode->選擇threshold angle->按下userbottom:
+進入gesture UI mode->選擇threshold angle->按下userbottom->停止gesture UI mode->回到rpc loop:
 ![image](https://user-images.githubusercontent.com/79581724/117925385-bc5a5600-b329-11eb-89f4-42c12baa222a.png)
+![image](https://user-images.githubusercontent.com/79581724/118085460-06f4d480-b3f5-11eb-9e9b-e6d2bdffd257.png)
 \
 \
 進入tilt angle detection mode->偵測角度:
@@ -22,4 +23,12 @@
 ![image](https://user-images.githubusercontent.com/79581724/117925524-f88db680-b329-11eb-8446-c2c82c533b7d.png)
 \
 \
-若超過threshold angle->publish
+若超過threshold angle->publish給python端:
+![image](https://user-images.githubusercontent.com/79581724/118085152-79b18000-b3f4-11eb-80d8-aaf6a897993b.png)
+\
+\
+超過角度的次數超過5次->停止tilt angle detection mode->回到RPC loop:
+![image](https://user-images.githubusercontent.com/79581724/118085414-f5133180-b3f4-11eb-8667-20350f90c93f.png)
+![image](https://user-images.githubusercontent.com/79581724/118085530-21c74900-b3f5-11eb-8065-c93d610ea579.png)
+
+
